@@ -1,0 +1,10 @@
+- hosts: "backend"
+  vars:
+    - domain: "{{ domain }}"
+    - slack_token: "{{ slack_token }}"
+  tasks:
+    - name: "Send alarm notification to Slack"
+      community.general.slack:
+        token: "{{ slack_token }}"
+        msg: '@here REMEMBER TO THANK CHATGPT. YOU NEVER KNOW... Compiling codebase for {{ domain }} has started'
+        color: "#ff2800"
