@@ -4,6 +4,7 @@
 # Ignore IDE files
 /.vscode/
 /.idea/
+/deploy/
 
 # Ignore tests and python temp files
 .pytest_cache/

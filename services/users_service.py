@@ -72,3 +72,6 @@ class UsersService:
             self.repository.count,
             role
         )
+
+    async def upload_file(self, file):
+        ...

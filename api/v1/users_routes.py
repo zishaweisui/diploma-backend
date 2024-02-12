@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query, Request, UploadFile
 
+from models import SharedUploadedFile
 from models.base_model import PyObjectId
 from models.page import Paging, UsersPageOut
 from models.user import UserIn, UserOut, UserUpdate
@@ -56,3 +57,9 @@ async def get_users_page(
     paging = Paging(page_size=page_size, page=page, role=role)
     handler = structure.instantiate("get_users_page_auth_handler")
     return await handler.handle(request, paging)
+
+
+@router.post("/users/files", response_model=SharedUploadedFile)
+async def upload_file(request: Request, file: UploadFile):
+    handler = structure.instantiate("upload_user_file_auth_handler")
+    return await handler.handle(request, file)

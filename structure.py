@@ -7,22 +7,6 @@ from gateways.http_client import HttpClient
 from gateways.mail_gateway import GmailGateway
 from handlers.auth_decorator import AuthDecoratorFactory, AuthFactory
 from handlers.auth_handlers import LoginHandler, LogoutHandler, RefreshHandler
-from handlers.mlos import (
-    ChangeMLOStatusHandler,
-    CreateMLOHandler,
-    DeleteMLOHandler,
-    GetCountHandler,
-    GetMLOHandler,
-    GetMLOsPageHandler,
-    UpdateMLOHandler,
-    UploadMLOFileHandler,
-    UploadMLOHeadshotHandler,
-)
-from handlers.public import (
-    FindNearestMLOHandler,
-    GetMLOWebAppHandler,
-    GetMLOWebAppInfoHandler,
-)
 from handlers.users import (
     CreateUserHandler,
     DeleteUserHandler,
@@ -31,21 +15,19 @@ from handlers.users import (
     GetUsersHandler,
     GetUsersPageHandler,
     UpdateUserHandler,
+    UploadUserFileHandler,
 )
 from models.translators import (
-    MLOMongoTranslator,
     UploadedFileMongoTranslator,
     UserMongoTranslator,
 )
 from repositories import (
     CacheRepository,
-    MLOsRepository,
     UsersRepository,
 )
 from services import (
     AuthService,
     FilesService,
-    MLOsService,
     PageService,
     PasswordService,
     PublicFilesService,
@@ -67,9 +49,6 @@ class Structure:
     def __init__(self, dependencies: Dependencies):
         self.dependencies = dependencies
         self.structure = {
-            "public_validate_mlo_prospect_auth_handler": lambda: self.decorate_auth_handler(
-                "public_validate_mlo_prospect_handler", auth_factory.liberal()
-            ),
             "page_service": {
                 "class": PageService,
                 "args": []
@@ -182,13 +161,37 @@ class Structure:
             "delete_user_auth_handler": lambda: self.decorate_auth_handler(
                 "delete_user_handler", auth_factory.strict(roles=["superadmin"])
             ),
-            "mlos_service": {
-                "class": MLOsService,
+            "user_public_file_s3_wrapper": {
+                "class": S3Wrapper,
                 "args": [
-                    "mlo_files_service",
-                    "page_service",
-                    "mlos_repository",
-                    "cache_gateway"
+                    lambda: self.dependencies.s3_session(),
+                    lambda: get_settings().s3_public_bucket_name,
+                    lambda: "users_public_files/"
+                ]
+            },
+            "user_file_s3_wrapper": {
+                "class": S3Wrapper,
+                "args": [
+                    lambda: self.dependencies.s3_session(),
+                    lambda: get_settings().s3_bucket_name,
+                    lambda: "user_files/"
+                ]
+            },
+            "user_files_service": {
+                "class": PublicFilesService,
+                "args": [
+                    "user_file_s3_wrapper",
+                    "user_public_file_s3_wrapper"
+                ]
+            },
+            "upload_user_file_auth_handler": lambda: self.decorate_auth_handler(
+                "upload_user_file_handler", auth_factory.strict(["admin"])
+            ),
+            "upload_user_file_handler": {
+                "class": UploadUserFileHandler,
+                "args": [
+                    "users_service",
+                    None
                 ]
             },
             "cache_gateway": {
@@ -206,23 +209,6 @@ class Structure:
                 ]
             },
             "redis": lambda: self.dependencies.redis(),
-            "mlos_repository": {
-                "singleton": True,
-                "class": MLOsRepository,
-                "args": [
-                    lambda: self.dependencies.motor_wrapper().get_collection(
-                        self.dependencies.motor_wrapper().get_client(), "mlos"),
-                    "mlo_mongo_translator",
-                    lambda: create_mongo_index(
-                        [
-                            ascending("web_app_id"),
-                            ascending("nmls_license"),
-                            ascending("email")
-                        ]
-                    ),
-                    "uploaded_file_mongo_translator"
-                ]
-            },
             "uploaded_file_mongo_translator": {
                 "class": UploadedFileMongoTranslator
             },
@@ -231,122 +217,6 @@ class Structure:
                 "class": HttpClient,
                 "args": []
             },
-            "mlo_mongo_translator": {
-                "class": MLOMongoTranslator,
-                "args": []
-            },
-            "create_mlo_handler": {
-                "class": CreateMLOHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "create_mlo_auth_handler": lambda: self.decorate_auth_handler(
-                "create_mlo_handler", auth_factory.liberal()
-            ),
-            "mlo_public_file_s3_wrapper": {
-                "class": S3Wrapper,
-                "args": [
-                    lambda: self.dependencies.s3_session(),
-                    lambda: get_settings().s3_public_bucket_name,
-                    lambda: "mlos_headshots/"
-                ]
-            },
-            "mlo_file_s3_wrapper": {
-                "class": S3Wrapper,
-                "args": [
-                    lambda: self.dependencies.s3_session(),
-                    lambda: get_settings().s3_bucket_name,
-                    lambda: "mlos_files/"
-                ]
-            },
-            "mlo_files_service": {
-                "class": PublicFilesService,
-                "args": [
-                    "mlo_file_s3_wrapper",
-                    "mlo_public_file_s3_wrapper"
-                ]
-            },
-            "upload_mlo_headshot_auth_handler": lambda: self.decorate_auth_handler(
-                "upload_mlo_headshot_handler", auth_factory.strict(["admin"])
-            ),
-            "upload_mlo_headshot_handler": {
-                "class": UploadMLOHeadshotHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "upload_mlo_file_handler": {
-                "class": UploadMLOFileHandler,
-                "args": [
-                    "mlo_public_file_s3_wrapper",
-                    None
-                ]
-            },
-            "upload_mlo_file_auth_handler": lambda: self.decorate_auth_handler(
-                "upload_mlo_file_handler", auth_factory.liberal()
-            ),
-            "get_mlo_handler": {
-                "class": GetMLOHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "get_mlo_auth_handler": lambda: self.decorate_auth_handler(
-                "get_mlo_handler", auth_factory.strict("*")
-            ),
-            "get_mlos_page_handler": {
-                "class": GetMLOsPageHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "get_mlos_page_auth_handler": lambda: self.decorate_auth_handler(
-                "get_mlos_page_handler", auth_factory.strict(roles=["admin"])
-            ),
-            "update_mlo_handler": {
-                "class": UpdateMLOHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "update_mlo_auth_handler": lambda: self.decorate_auth_handler(
-                "update_mlo_handler", auth_factory.strict("*")
-            ),
-            "delete_mlo_handler": {
-                "class": DeleteMLOHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "delete_mlo_auth_handler": lambda: self.decorate_auth_handler(
-                "delete_mlo_handler", auth_factory.strict("*")
-            ),
-            "get_mlo_count_handler": {
-                "class": GetCountHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "change_mlo_status_handler": {
-                "class": ChangeMLOStatusHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "get_mlo_count_auth_handler": lambda: self.decorate_auth_handler(
-                "get_mlo_count_handler", auth_factory.strict(["superadmin"])),
-            "change_mlo_status_auth_handler": lambda: self.decorate_auth_handler(
-                "change_mlo_status_handler", auth_factory.strict(["admin"])
-            ),
             "login_handler": {
                 "class": LoginHandler,
                 "args": [
@@ -393,60 +263,6 @@ class Structure:
                     "auth_service"
                 ]
             },
-            "upload_video_templates_file_handler": {
-                "class": UploadMLOFileHandler,
-                "args": [
-                    "video_templates_file_s3_wrapper",
-                    None
-                ]
-            },
-            "upload_video_templates_file_auth_handler": lambda: self.decorate_auth_handler(
-                "upload_video_templates_file_handler", auth_factory.strict(roles=["superadmin"])
-            ),
-            "video_templates_file_s3_wrapper": {
-                "class": S3Wrapper,
-                "args": [
-                    lambda: self.dependencies.s3_session(),
-                    lambda: get_settings().s3_bucket_name,
-                    lambda: "video_templates_files/"
-                ]
-            },
-            "video_templates_files_service": {
-                "class": FilesService,
-                "args": [
-                    "video_templates_file_s3_wrapper"
-                ]
-            },
-            "get_mlo_web_app_handler": {
-                "class": GetMLOWebAppHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "get_mlo_web_app_auth_handler": lambda: self.decorate_auth_handler(
-                "get_mlo_web_app_handler", auth_factory.liberal()
-            ),
-            "get_mlo_web_app_info_handler": {
-                "class": GetMLOWebAppInfoHandler,
-                "args": [
-                    "mlos_service",
-                    None
-                ]
-            },
-            "get_mlo_web_app_info_auth_handler": lambda: self.decorate_auth_handler(
-                "get_mlo_web_app_info_handler", auth_factory.liberal()
-            ),
-            "find_nearest_mlo_handler": {
-                "class": FindNearestMLOHandler,
-                "args": [
-                    "mlos_geolocation_service",
-                    None
-                ]
-            },
-            "find_nearest_mlo_auth_handler": lambda: self.decorate_auth_handler(
-                "find_nearest_mlo_handler", auth_factory.liberal()
-            ),
             "message_builder": {
                 "class": MessageBuilder,
                 "args": []
