@@ -1,2 +1,3 @@
 from .user_mongo_translator import UserMongoTranslator
 from .uploaded_file_mongo_translator import UploadedFileMongoTranslator
+from .game_mongo_translator import GameMongoTranslator

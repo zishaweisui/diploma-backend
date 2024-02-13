@@ -5,3 +5,4 @@ from .page_service import PageService
 from .password_service import PasswordService
 from .tokens_service import TokensService
 from .public_files_service import PublicFilesService
+from .games_service import GamesService

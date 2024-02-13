@@ -1,11 +1,8 @@
 from pydantic import BaseModel, Field, field_validator
 
-from models.filtering import (
-    MLOFiltering
-)
-
+from models.filtering import GameFiltering
+from models.game import GameOut
 from models.user import UserOut
-from models.mlo import MLOOut
 
 
 class Page(BaseModel):
@@ -31,8 +28,8 @@ class Paging(BasePaging):
     role: str | None
 
 
-class MLOPaging(BasePaging):
-    filtering: MLOFiltering
+class GamePaging(BasePaging):
+    filtering: GameFiltering
 
 
 class BasePageOut(BaseModel):
@@ -45,5 +42,5 @@ class UsersPageOut(BasePageOut):
     items: list[UserOut]
 
 
-class MLOsPageOut(BasePageOut):
-    items: list[MLOOut]
+class GamesPageOut(BasePageOut):
+    items: list[GameOut]

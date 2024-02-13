@@ -20,10 +20,12 @@ from handlers.users import (
 from models.translators import (
     UploadedFileMongoTranslator,
     UserMongoTranslator,
+    GameMongoTranslator,
 )
 from repositories import (
     CacheRepository,
     UsersRepository,
+    GamesRepository,
 )
 from services import (
     AuthService,
@@ -33,6 +35,7 @@ from services import (
     PublicFilesService,
     TokensService,
     UsersService,
+    GamesService,
 )
 from services.builders.message_builder import MessageBuilder
 from wrappers import BcryptWrapper, S3Wrapper
@@ -99,7 +102,7 @@ class Structure:
                 ]
             },
             "create_user_auth_handler": lambda: self.decorate_auth_handler(
-                "create_user_handler", auth_factory.strict(roles=["superadmin"])
+                "create_user_handler", auth_factory.liberal()
             ),
             "get_user_handler": {
                 "class": GetUserHandler,
@@ -109,7 +112,7 @@ class Structure:
                 ]
             },
             "get_user_auth_handler": lambda: self.decorate_auth_handler(
-                "get_user_handler", auth_factory.strict(roles=["superadmin"])
+                "get_user_handler", auth_factory.strict(roles=["admin"])
             ),
             "get_me_handler": {
                 "class": GetMeHandler,
@@ -129,7 +132,7 @@ class Structure:
                 ]
             },
             "get_users_auth_handler": lambda: self.decorate_auth_handler(
-                "get_users_handler", auth_factory.strict(roles=["superadmin"])
+                "get_users_handler", auth_factory.strict(roles=["admin"])
             ),
             "get_users_page_handler": {
                 "class": GetUsersPageHandler,
@@ -139,7 +142,7 @@ class Structure:
                 ]
             },
             "get_users_page_auth_handler": lambda: self.decorate_auth_handler(
-                "get_users_page_handler", auth_factory.strict(roles=["superadmin"])
+                "get_users_page_handler", auth_factory.strict(roles=["admin"])
             ),
             "update_user_handler": {
                 "class": UpdateUserHandler,
@@ -149,7 +152,7 @@ class Structure:
                 ]
             },
             "update_user_auth_handler": lambda: self.decorate_auth_handler(
-                "update_user_handler", auth_factory.strict(roles=["superadmin"])
+                "update_user_handler", auth_factory.strict("*")
             ),
             "delete_user_handler": {
                 "class": DeleteUserHandler,
@@ -159,7 +162,7 @@ class Structure:
                 ]
             },
             "delete_user_auth_handler": lambda: self.decorate_auth_handler(
-                "delete_user_handler", auth_factory.strict(roles=["superadmin"])
+                "delete_user_handler", auth_factory.strict("*")
             ),
             "user_public_file_s3_wrapper": {
                 "class": S3Wrapper,
@@ -185,7 +188,7 @@ class Structure:
                 ]
             },
             "upload_user_file_auth_handler": lambda: self.decorate_auth_handler(
-                "upload_user_file_handler", auth_factory.strict(["admin"])
+                "upload_user_file_handler", auth_factory.strict("*")
             ),
             "upload_user_file_handler": {
                 "class": UploadUserFileHandler,
@@ -193,6 +196,31 @@ class Structure:
                     "users_service",
                     None
                 ]
+            },
+            "games_service": {
+                "class": GamesService,
+                "args": [
+                    "page_service",
+                    "games_repository"
+                ]
+            },
+            "games_repository": {
+                "singleton": True,
+                "class": GamesRepository,
+                "args": [
+                    lambda: self.dependencies.motor_wrapper().get_collection(
+                        self.dependencies.motor_wrapper().get_client(), "games"),
+                    "game_mongo_translator",
+                    lambda: create_mongo_index(
+                        [
+                            ascending("steam_id")
+                        ]
+                    )
+                ]
+            },
+            "game_mongo_translator": {
+                "class": GameMongoTranslator,
+                "args": []
             },
             "cache_gateway": {
                 "class": CacheGateway,

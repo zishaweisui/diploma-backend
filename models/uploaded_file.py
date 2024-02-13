@@ -8,4 +8,3 @@ class UploadedFile(BaseModel):
 
 class SharedUploadedFile(UploadedFile):
     link: str | None = Field(None)
-

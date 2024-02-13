@@ -9,7 +9,7 @@ class BaseUser(BaseModel):
     role: str = Field(...)
     roles: list[str] = Field(...)
     email: EmailStr
-    profile: Profile
+    nickname: str
 
     def get_roles(self):
         return [self.role, *self.roles]
@@ -38,10 +38,11 @@ class User(BaseModel):
     role: str = Field(...)
     roles: list[str] = Field(...)
     email: str = Field(...)
-    profile: Profile
+    nickname: str
+    profile: Profile | None
     password_hash: bytes | None = None
     token_pairs: list[TokenPair] | None = None
 
     def assign_request(self, model: UserIn):
         self.email = model.email
-        self.profile = model.profile
+        self.nickname = model.nickname
