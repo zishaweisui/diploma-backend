@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, field_serializer, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
-from models.base_model import PydanticObjectId, PyObjectId
+from models.base_model import PydanticObjectId
 
 
 class BaseGame(BaseModel):

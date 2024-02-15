@@ -18,31 +18,29 @@ from handlers.users import (
     UploadUserFileHandler,
 )
 from models.translators import (
+    GameMongoTranslator,
     UploadedFileMongoTranslator,
     UserMongoTranslator,
-    GameMongoTranslator,
 )
 from repositories import (
     CacheRepository,
-    UsersRepository,
     GamesRepository,
+    UsersRepository,
 )
 from services import (
     AuthService,
-    FilesService,
+    GamesService,
     PageService,
     PasswordService,
     PublicFilesService,
     TokensService,
     UsersService,
-    GamesService,
 )
 from services.builders.message_builder import MessageBuilder
 from wrappers import BcryptWrapper, S3Wrapper
 from wrappers.factories.mongo_index_factory import (
     ascending,
     create_mongo_index,
-    geo_2dsphere,
 )
 
 auth_factory = AuthFactory()

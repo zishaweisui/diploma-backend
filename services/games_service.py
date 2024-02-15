@@ -1,8 +1,8 @@
 from bson.objectid import ObjectId
 
 from infrastructure_exceptions import InvalidRequestException, NotFoundException
-from models.page import Page
 from models.game import Game, GameIn, GameUpdate
+from models.page import Page
 
 
 class GamesService:

@@ -2,9 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Request
 
-from models.game import (
-    GameOut
-)
+from models.game import GameOut
 from structure import structure
 
 router = APIRouter(tags=["public"], prefix="/v1")
