@@ -15,7 +15,7 @@ def generate_password(env):
     return "".join(choice(ascii_letters) for _ in range(12))
 
 
-async def create_users():
+async def create_admins():
     users_repository = structure.instantiate("users_repository")
     password_service = structure.instantiate("password_service")
     env = get_settings().env
@@ -33,8 +33,8 @@ async def create_users():
         password = generate_password(env)
         user_attrs = {
             "email": email,
-            "role": "superadmin",
-            "roles": ["admin"],
+            "role": "admin",
+            "roles": ["user"],
             "password_hash": await password_service.create_hash(password),
             "profile": {
                 "first_name": f.first_name(),
@@ -48,7 +48,7 @@ async def create_users():
         print(f"Created - {email}/{password}")
 
 
-async def create_admins():
+async def create_users():
     users_repository = structure.instantiate("users_repository")
     password_service = structure.instantiate("password_service")
     env = get_settings().env
@@ -66,7 +66,7 @@ async def create_admins():
         password = generate_password(env)
         user_attrs = {
             "email": email,
-            "role": "admin",
+            "role": "user",
             "roles": [],
             "password_hash": await password_service.create_hash(password),
             "profile": {

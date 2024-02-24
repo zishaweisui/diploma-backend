@@ -7,6 +7,7 @@ from gateways.http_client import HttpClient
 from gateways.mail_gateway import GmailGateway
 from handlers.auth_decorator import AuthDecoratorFactory, AuthFactory
 from handlers.auth_handlers import LoginHandler, LogoutHandler, RefreshHandler
+from handlers.recommendations import GetRecommendationHandler
 from handlers.users import (
     CreateUserHandler,
     DeleteUserHandler,
@@ -16,6 +17,15 @@ from handlers.users import (
     GetUsersPageHandler,
     UpdateUserHandler,
     UploadUserFileHandler,
+)
+from handlers.games import (
+    CreateGameHandler,
+    UpdateGameHandler,
+    DeleteGameHandler,
+)
+from handlers.public import (
+    GetPublicGameHandler,
+    GetPublicGamesPageHandler,
 )
 from models.translators import (
     GameMongoTranslator,
@@ -35,6 +45,7 @@ from services import (
     PublicFilesService,
     TokensService,
     UsersService,
+    RecommendationsService,
 )
 from services.builders.message_builder import MessageBuilder
 from wrappers import BcryptWrapper, S3Wrapper
@@ -220,6 +231,72 @@ class Structure:
                 "class": GameMongoTranslator,
                 "args": []
             },
+            "create_game_handler": {
+                "class": CreateGameHandler,
+                "args": [
+                    "games_service",
+                    None
+                ]
+            },
+            "create_game_auth_handler": lambda: self.decorate_auth_handler(
+                "create_game_handler", auth_factory.strict(roles=["admin"])
+            ),
+            "update_game_handler": {
+                "class": UpdateGameHandler,
+                "args": [
+                    "games_service",
+                    None
+                ]
+            },
+            "update_game_auth_handler": lambda: self.decorate_auth_handler(
+                "update_game_handler", auth_factory.strict(roles=["admin"])
+            ),
+            "delete_game_handler": {
+                "class": DeleteGameHandler,
+                "args": [
+                    "games_service",
+                    None
+                ]
+            },
+            "delete_game_auth_handler": lambda: self.decorate_auth_handler(
+                "delete_game_handler", auth_factory.strict(roles=["admin"])
+            ),
+            "get_game_handler": {
+                "class": GetPublicGameHandler,
+                "args": [
+                    "games_service",
+                    None
+                ]
+            },
+            "get_game_auth_handler": lambda: self.decorate_auth_handler(
+                "get_game_handler", auth_factory.liberal()
+            ),
+            "get_games_page_handler": {
+                "class": GetPublicGamesPageHandler,
+                "args": [
+                    "games_service",
+                    None
+                ]
+            },
+            "get_games_page_auth_handler": lambda: self.decorate_auth_handler(
+                "get_games_page_handler", auth_factory.liberal()
+            ),
+            "recommendations_service": {
+                "class": RecommendationsService,
+                "args": [
+                    "games_repository"
+                ]
+            },
+            "get_game_recommendation_handler": {
+                "class": GetRecommendationHandler,
+                "args": [
+                    "recommendations_service",
+                    None
+                ]
+            },
+            "get_game_recommendation_auth_handler": lambda: self.decorate_auth_handler(
+                "get_game_recommendation_handler", auth_factory.strict(roles=["user"])
+            ),
             "cache_gateway": {
                 "class": CacheGateway,
                 "args": [

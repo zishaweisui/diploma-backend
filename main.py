@@ -8,6 +8,8 @@ from api.general import router as health_router
 from api.v1.auth_routes import router as auth_router
 from api.v1.public_routes import router as public_router
 from api.v1.users_routes import router as users_router
+from api.v1.games_routes import router as games_router
+from api.v1.recommendations_routes import router as recommendations_router
 from env_settings import get_settings
 
 app_settings = get_settings()
@@ -27,6 +29,8 @@ application.include_router(health_router)
 application.include_router(users_router)
 application.include_router(auth_router)
 application.include_router(public_router)
+application.include_router(games_router)
+application.include_router(recommendations_router)
 
 application.add_middleware(
     CORSMiddleware,

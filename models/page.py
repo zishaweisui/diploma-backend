@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 
-from models.filtering import GameFiltering
+from models.filtering import GameFiltering, UserFiltering
 from models.game import GameOut
 from models.user import UserOut
 
@@ -30,6 +30,10 @@ class Paging(BasePaging):
 
 class GamePaging(BasePaging):
     filtering: GameFiltering
+
+
+class UserPaging(BasePaging):
+    filtering: UserFiltering
 
 
 class BasePageOut(BaseModel):
