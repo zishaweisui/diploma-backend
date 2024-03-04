@@ -12,7 +12,7 @@ from structure import structure
 def generate_password(env):
     if env != "prod":
         return "qweQWE123"
-    return "".join(choice(ascii_letters) for _ in range(12))
+    return "".join(choice(ascii_letters) for _ in range(2))
 
 
 async def create_admins():
@@ -22,8 +22,8 @@ async def create_admins():
     f = Faker()
 
     emails = [
-        "d.gusev@storytelling-software.com",
-        "a.levinas@storytelling-software.com"
+        "d.gusev+admin@software.com",
+        "a.levinas+admin@software.com"
     ]
 
     for email in emails:
@@ -35,6 +35,7 @@ async def create_admins():
             "email": email,
             "role": "admin",
             "roles": ["user"],
+            "nickname": f"{email.split('@')}_{f.name()}",
             "password_hash": await password_service.create_hash(password),
             "profile": {
                 "first_name": f.first_name(),
@@ -55,8 +56,8 @@ async def create_users():
     f = Faker()
 
     emails = [
-        "d.gusev+admin@storytelling-software.com",
-        "a.levinas+admin@storytelling-software.com"
+        "d.gusev@software.com",
+        "a.levinas@software.com"
     ]
 
     for email in emails:
@@ -69,6 +70,7 @@ async def create_users():
             "role": "user",
             "roles": [],
             "password_hash": await password_service.create_hash(password),
+            "nickname": f.name(),
             "profile": {
                 "first_name": f.first_name(),
                 "last_name": f.last_name()

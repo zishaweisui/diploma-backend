@@ -7,7 +7,9 @@ class BaseGame(BaseModel):
     steam_id: int
     name: str
     header_image: str | None = Field(pattern=r"^(http(s?)):\/\/.+\..+$")
-    url: str | None = Field(pattern=r"^(http(s?)):\/\/.+\..+$")
+    developer: str | None
+    publisher: str | None
+    genres: list[str] | None
 
 
 class GameIn(BaseGame):
@@ -16,16 +18,6 @@ class GameIn(BaseGame):
 
 class GameUpdate(BaseGame):
     ...
-
-
-# class RatedGame(BaseGame):
-#     id: PydanticObjectId = Field(...)
-#     user_id: PyObjectId = Field(...)
-#     rating: int
-#
-#     @field_serializer("id", check_fields=False)
-#     def serialize_id(self, v, _info):
-#         return str(v)
 
 
 class GameOut(BaseGame):
@@ -43,5 +35,7 @@ class Game(BaseGame):
 
     def assign_request(self, updated_game: GameUpdate):
         self.name = updated_game.name
-        self.url = updated_game.url
         self.header_image = updated_game.header_image
+        self.developer = updated_game.developer
+        self.publisher = updated_game.publisher
+        self.genres = updated_game.genres
