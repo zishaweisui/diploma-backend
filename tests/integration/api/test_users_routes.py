@@ -41,11 +41,10 @@ async def __auth_headers(created_user: User) -> dict:
 
 def __get_user_attributes(email=None) -> dict:
     return {
-        "role": "superadmin",
-        "roles": [
-            "admin"
-            ],
+        "role": "user",
+        "roles": [],
         "email": email or "test@yolo.com",
+        "nickname": f.first_name().lower(),
         "profile": {
             "first_name": f.first_name(),
             "last_name": f.last_name()
@@ -55,66 +54,13 @@ def __get_user_attributes(email=None) -> dict:
 
 
 @pytest.mark.anyio
-async def test_create_user(client: AsyncClient):
-    user_attributes = __get_user_attributes()
-
-    superadmin = await __create_user()
-    response = await client.post(
-        "/v1/users", json=user_attributes, headers=await __auth_headers(superadmin))
-
-    assert response.status_code == 200
-    user = await users_repository.find_by_email(user_attributes["email"])
-    assert user is not None
-
-
-@pytest.mark.anyio
-async def test_create_user_existing_email(client: AsyncClient):
-    existing_user = await __create_user()
-    user_attributes = __get_user_attributes(email=existing_user.email)
-
-    response = await client.post(
-        "/v1/users", json=user_attributes, headers=await __auth_headers(existing_user))
-    assert response.status_code == 400
-    assert response.json()["user"][0]["key"] == "error_already_exists"
-
-
-@pytest.mark.anyio
-async def test_create_user_invalid_attributes(client: AsyncClient):
-    user_attributes = {}
-    superadmin = await __create_user()
-
-    response = await client.post(
-        "/v1/users", json=user_attributes, headers=await __auth_headers(superadmin))
-    assert response.status_code == 422
-
-
-@pytest.mark.anyio
-async def test_create_user_no_auth(client: AsyncClient):
-    user_attributes = __get_user_attributes()
-
-    response = await client.post("/v1/users", json=user_attributes)
-    assert response.status_code == 401
-
-
-@pytest.mark.anyio
-async def test_create_user_invalid_token(client: AsyncClient):
-    invalid_auth_headers = {"Authorization": "Token invalid_token"}
-    user_attributes = __get_user_attributes()
-
-    response = await client.post("/v1/users", json=user_attributes, headers=invalid_auth_headers)
-    assert response.status_code == 401
-    exist_user = await users_repository.find_by_email(user_attributes["email"])
-    assert exist_user is None
-
-
-@pytest.mark.anyio
 async def test_get_users_page(client: AsyncClient):
     await __clear_database()
     for _ in range(2):
         await __create_user()
 
-    superadmin = await __create_user()
-    response = await client.get("/v1/users", headers = await __auth_headers(superadmin))
+    admin = await __create_user()
+    response = await client.get("/v1/users", headers=await __auth_headers(admin))
 
     assert response.status_code == 200
     assert isinstance(response.json(), dict)
@@ -129,8 +75,8 @@ async def test_get_all_users(client: AsyncClient):
     for _ in range(2):
         await __create_user()
 
-    superadmin = await __create_user()
-    response = await client.get("/v1/all_users", headers = await __auth_headers(superadmin))
+    admin = await __create_user()
+    response = await client.get("/v1/all_users", headers=await __auth_headers(admin))
 
     assert response.status_code == 200
     assert isinstance(response.json(), list)
@@ -154,7 +100,7 @@ async def test_get_all_users_invalid_token(client: AsyncClient):
 async def test_get_one_user(client: AsyncClient):
     created_user = await __create_user()
     response = await client.get(
-        f"/v1/users/{str(created_user.id)}", headers = await __auth_headers(created_user))
+        f"/v1/users/{str(created_user.id)}", headers=await __auth_headers(created_user))
 
     assert response.status_code == 200
     response_body = response.json()
@@ -256,7 +202,7 @@ async def test_update_user_invalid_token(client: AsyncClient):
 async def test_delete_user(client: AsyncClient):
     existing_user = await __create_user()
 
-    response = await client.delete(f"/v1/users/{existing_user.id}", headers = await __auth_headers(existing_user))
+    response = await client.delete(f"/v1/users/{existing_user.id}", headers=await __auth_headers(existing_user))
 
     assert response.status_code == 200
     exist_user = await users_repository.get(existing_user.id)
@@ -278,8 +224,8 @@ async def test_delete_user_invalid_token(client: AsyncClient):
 
 @pytest.mark.anyio
 async def test_delete_missing_user(client: AsyncClient):
-    superadmin = await __create_user()
-    response = await client.delete(f"/v1/users/{str(ObjectId())}", headers=await __auth_headers(superadmin))
+    admin = await __create_user()
+    response = await client.delete(f"/v1/users/{str(ObjectId())}", headers=await __auth_headers(admin))
     assert response.status_code == 404
 
 

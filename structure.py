@@ -9,7 +9,6 @@ from handlers.auth_decorator import AuthDecoratorFactory, AuthFactory
 from handlers.auth_handlers import LoginHandler, LogoutHandler, RefreshHandler
 from handlers.recommendations import GetRecommendationHandler
 from handlers.users import (
-    CreateUserHandler,
     DeleteUserHandler,
     GetMeHandler,
     GetUserHandler,
@@ -24,6 +23,7 @@ from handlers.games import (
     DeleteGameHandler,
 )
 from handlers.public import (
+    CreateUserHandler,
     GetPublicGameHandler,
     GetPublicGamesPageHandler,
 )
@@ -103,16 +103,6 @@ class Structure:
                 "class": UserMongoTranslator,
                 "args": []
             },
-            "create_user_handler": {
-                "class": CreateUserHandler,
-                "args": [
-                    "users_service",
-                    None
-                ]
-            },
-            "create_user_auth_handler": lambda: self.decorate_auth_handler(
-                "create_user_handler", auth_factory.liberal()
-            ),
             "get_user_handler": {
                 "class": GetUserHandler,
                 "args": [
@@ -260,6 +250,16 @@ class Structure:
             },
             "delete_game_auth_handler": lambda: self.decorate_auth_handler(
                 "delete_game_handler", auth_factory.strict(roles=["admin"])
+            ),
+            "create_user_handler": {
+                "class": CreateUserHandler,
+                "args": [
+                    "users_service",
+                    None
+                ]
+            },
+            "create_user_auth_handler": lambda: self.decorate_auth_handler(
+                "create_user_handler", auth_factory.liberal()
             ),
             "get_game_handler": {
                 "class": GetPublicGameHandler,

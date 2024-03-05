@@ -1,2 +1,3 @@
 from .get_games_page_handler import GetPublicGamesPageHandler
 from .get_game_handler import GetPublicGameHandler
+from .create_user_handler import CreateUserHandler

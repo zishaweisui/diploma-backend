@@ -12,12 +12,6 @@ from structure import structure
 router = APIRouter(tags=["users"], prefix="/v1")
 
 
-@router.post("/users/signup", response_model=UserOut)
-async def create_user(user: UserIn, request: Request) -> UserOut:
-    handler = structure.instantiate("create_user_auth_handler")
-    return await handler.handle(request, user)
-
-
 @router.get("/users/{user_id}", response_model=UserOut)
 async def get_user(user_id: PyObjectId, request: Request) -> UserOut | None:
     handler = structure.instantiate("get_user_auth_handler")

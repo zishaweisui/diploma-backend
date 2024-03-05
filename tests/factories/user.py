@@ -11,8 +11,8 @@ class UserFactory:
         self.precalculated_password_hash = None
 
     async def generic(self, role=None, roles=None, password="qweQWE123"):
-        roles = roles or ["admin"]
-        role = role or "superadmin"
+        roles = roles or ["user"]
+        role = role or "admin"
         if not self.precalculated_password_hash:
             self.precalculated_password_hash = await self.password_service.create_hash("qweQWE123")
         match password:
@@ -25,6 +25,7 @@ class UserFactory:
             role=role,
             roles=roles,
             email=self.faker.email(),
+            nickname=self.faker.first_name().lower(),
             password_hash=password_hash,
             profile=Profile(first_name=self.faker.first_name(), last_name=self.faker.last_name()),
             token_pairs=[],

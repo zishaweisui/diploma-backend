@@ -1,4 +1,3 @@
-from .create_handler import CreateUserHandler
 from .get_handler import GetUserHandler
 from .update_handler import UpdateUserHandler
 from .delete_handler import DeleteUserHandler
