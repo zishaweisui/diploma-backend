@@ -32,7 +32,7 @@ class GamePaging(BasePaging):
     filtering: GameFiltering
 
 
-class UserPaging(BasePaging):
+class UserPaging(Paging):
     filtering: UserFiltering
 
 

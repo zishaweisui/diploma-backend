@@ -9,28 +9,24 @@ repository = structure.instantiate("games_repository")
 
 async def extract_game_info(df):
     raw_games = []
-    async with asyncio.TaskGroup() as tg:
-        for item in df.itertuples(index=False):
-            genres = []
-            for column in ["positive_ratings", "negative_ratings", "average_playtime", "median_playtime"]:
-                data = item[column]
-                if isinstance(data, int):
-                    continue
-                if isinstance(data, str) and data.startswith("Steam"):
-                    continue
-                genres.append(data)
-
+    for item in df.itertuples(index=False):
+        if isinstance(item.genres, str) and item.genres is not None and item.genres is not "0":
+            genres = item.genres.split(";")
+        else:
+            genres = None
         attributes = {
             "steam_id": item.appid,
             "name": item.name,
             "developer": item.developer,
             "publisher": item.publisher,
-            "genres": genres
+            "genres": genres,
+            "header_image": None
         }
+        print(attributes)
         game = Game(**attributes)
         raw_games.append(game)
 
-        return raw_games
+    return raw_games
 
 
 async def create_games(raw_games: list[Game]):
@@ -54,12 +50,9 @@ async def create_games(raw_games: list[Game]):
 if __name__ == "__main__":
     async def migrate_db_info():
         main_file = "steam.csv"
-        target_columns = ["appid", "name", "developer", "publisher", "positive_ratings",
-                          "negative_ratings", "average_playtime", "median_playtime"]
-
-        df = pd.read_csv(main_file, dtype={"appid": int, "name": str, "developer": str, "publisher": str,
-                                      "positive_ratings": str, "negative_ratings": str, "average_playtime": str,
-                                      "median_playtime": str})[target_columns]
+        target_columns = ["appid", "name", "developer", "publisher", "genres"]
+        df = pd.read_csv(main_file, dtype={"appid": int, "name": str, "developer": str,
+                         "publisher": str, "genres": str})[target_columns]
 
         print(f"{df = }")
         raw_games = await extract_game_info(df)

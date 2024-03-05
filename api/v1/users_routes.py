@@ -53,10 +53,11 @@ async def get_users_page(
         request: Request,
         page_size: Annotated[int | None, Query()] = None,
         page: Annotated[int | None, Query()] = None,
+        role: Annotated[str | None, Query(max_length=50)] = None,
         query: Annotated[str | None, Query(max_length=100)] = None,
 ):
     filtering = UserFiltering(query=query)
-    paging = UserPaging(page_size=page_size, page=page, filtering=filtering)
+    paging = UserPaging(page_size=page_size, page=page, role=role, filtering=filtering)
     handler = structure.instantiate("get_users_page_auth_handler")
     return await handler.handle(request, paging)
 

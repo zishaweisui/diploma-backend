@@ -26,7 +26,7 @@ class GamesRepository(BaseRepository):
         filtering_pipeline = filtering.build_pipeline()
         if not filtering_pipeline:
             filtering_pipeline = [{"$match": {}}]
-        sort_step = {"$sort": {"_id": -1}}
+        sort_step = {"$sort": {"name": 1}}
         limit_step = {"$limit": limit}
         skip_step = {"$skip": skip}
         pipeline = [*filtering_pipeline, sort_step, skip_step, limit_step]

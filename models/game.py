@@ -7,9 +7,9 @@ class BaseGame(BaseModel):
     steam_id: int
     name: str
     header_image: str | None = Field(pattern=r"^(http(s?)):\/\/.+\..+$")
-    developer: str | None
-    publisher: str | None
-    genres: list[str] | None
+    developer: str | None = None
+    publisher: str | None = None
+    genres: list[str] | None = None
 
 
 class GameIn(BaseGame):

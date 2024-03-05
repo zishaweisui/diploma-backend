@@ -64,7 +64,7 @@ class UsersService:
         return user
 
     async def get_page(self, paging, principal=None) -> Page:
-        role = paging.role or "admin"
+        role = paging.role or "user"
 
         return await self.page_service.get_page(
             paging,
