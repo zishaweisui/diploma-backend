@@ -56,7 +56,7 @@ async def get_users_page(
     return await handler.handle(request, paging)
 
 
-@router.post("/users/files", response_model=SharedUploadedFile)
-async def upload_file(request: Request, file: UploadFile):
-    handler = structure.instantiate("upload_user_file_auth_handler")
-    return await handler.handle(request, file)
+# @router.post("/users/files", response_model=SharedUploadedFile)
+# async def upload_file(request: Request, file: UploadFile):
+#     handler = structure.instantiate("upload_user_file_auth_handler")
+#     return await handler.handle(request, file)
