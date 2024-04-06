@@ -6,17 +6,14 @@ from models.token_pairs import TokenPair
 
 
 class BaseUser(BaseModel):
-    role: str = Field(...)
-    roles: list[str] = Field(...)
+    role: str | None = Field(None)
     email: EmailStr
+    profile: Profile | None
     nickname: str
-
-    def get_roles(self):
-        return [self.role, *self.roles]
 
 
 class UserUpdate(BaseUser):
-    password: str | None = Field(None, min_length=6)
+    ...
 
 
 class UserIn(BaseUser):
@@ -36,13 +33,14 @@ class User(BaseModel):
 
     id: PydanticObjectId | None = Field(None, alias="_id")
     role: str = Field(...)
-    roles: list[str] = Field(...)
     email: str = Field(...)
     nickname: str
     profile: Profile | None
     password_hash: bytes | None = None
     token_pairs: list[TokenPair] | None = None
 
-    def assign_request(self, model: UserIn):
+    def assign_request(self, model: UserUpdate):
         self.email = model.email
         self.nickname = model.nickname
+        self.profile.first_name = model.profile.first_name
+        self.profile.last_name = model.profile.last_name

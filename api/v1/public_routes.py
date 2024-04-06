@@ -1,11 +1,9 @@
-from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Request
 
 from models import UserIn
 from models.base_model import PyObjectId
 from models.game import GameOut
-from models.page import GamePaging, GamesPageOut, GameFiltering
 from models.user import UserOut
 from structure import structure
 
@@ -24,14 +22,7 @@ async def get_public_game(game_id: PyObjectId, request: Request) -> GameOut | No
     return await handler.handle(request, game_id)
 
 
-@router.get("/public/games", response_model=GamesPageOut)
-async def get_games_page(
-        request: Request,
-        page_size: Annotated[int | None, Query()] = None,
-        page: Annotated[int | None, Query()] = None,
-        query: Annotated[str | None, Query(max_length=50)] = None,
-):
-    filtering = GameFiltering(query=query)
-    paging = GamePaging(page_size=page_size, page=page, filtering=filtering)
-    handler = structure.instantiate("get_games_page_auth_handler")
-    return await handler.handle(request, paging)
+@router.get("/public/games", response_model=list[GameOut])
+async def get_public_games(request: Request) -> list[GameOut]:
+    handler = structure.instantiate("get_public_games_auth_handler")
+    return await handler.handle(request)

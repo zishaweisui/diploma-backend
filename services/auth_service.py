@@ -15,7 +15,7 @@ class AuthService:
         self.password_service = password_service
         self.tokens_service = tokens_service
 
-    async def login(self, login_request, principal=None) -> TokenPair:
+    async def login(self, login_request: LoginRequest, principal=None) -> TokenPair:
         user = await self.users_repository.find_by_email(login_request.email)
         if not user:
             raise UnauthenticatedException
@@ -79,13 +79,10 @@ class AuthService:
         return user
 
     async def authorize(self, user, roles):
-        if roles == "*":
-            return
-        if not user:
-            raise UnauthorizedException
-        user_roles = [user.role, *user.roles]
-        cross_roles = [role for role in user_roles if role in roles]
-        if not cross_roles:
+        role = None
+        if user:
+            role = user.role
+        if roles != "*" and role not in roles:
             raise UnauthorizedException
 
     async def change_password(self, attributes, principal=None) -> TokenPair:
@@ -124,7 +121,6 @@ class AuthService:
         claims = {
             "id": str(token_id),
             "user_id": str(user.id),
-            "roles": ",".join(user.roles),
             "role": user.role
         }
         access = self.tokens_service.encode("access", claims)

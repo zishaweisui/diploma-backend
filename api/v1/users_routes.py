@@ -6,7 +6,9 @@ from models import SharedUploadedFile
 from models.base_model import PyObjectId
 from models.page import UserPaging, UsersPageOut
 from models.filtering import UserFiltering
-from models.user import UserIn, UserOut, UserUpdate
+from models.token_pairs import TokenPairOut
+from models.user import UserOut, UserUpdate
+from models.password import UpdatePassword
 from structure import structure
 
 router = APIRouter(tags=["users"], prefix="/v1")
@@ -54,6 +56,12 @@ async def get_users_page(
     paging = UserPaging(page_size=page_size, page=page, role=role, filtering=filtering)
     handler = structure.instantiate("get_users_page_auth_handler")
     return await handler.handle(request, paging)
+
+
+@router.post("/users/{user_id}/change_password", response_model=TokenPairOut)
+async def change_password(user_id: PyObjectId, updated_password: UpdatePassword, request: Request) -> TokenPairOut:
+    handler = structure.instantiate("change_password_auth_handler")
+    return await handler.handle(request, user_id, updated_password)
 
 
 # @router.post("/users/files", response_model=SharedUploadedFile)

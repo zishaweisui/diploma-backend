@@ -34,7 +34,6 @@ async def create_admins():
         user_attrs = {
             "email": email,
             "role": "admin",
-            "roles": ["user"],
             "nickname": f"{email.split('@')[0]}_{f.first_name().lower()}",
             "password_hash": await password_service.create_hash(password),
             "profile": {
@@ -68,7 +67,6 @@ async def create_users():
         user_attrs = {
             "email": email,
             "role": "user",
-            "roles": [],
             "password_hash": await password_service.create_hash(password),
             "nickname": f"{email.split('@')[0]}_{f.first_name().lower()}",
             "profile": {

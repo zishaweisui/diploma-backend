@@ -1,6 +1,5 @@
 from bson.objectid import ObjectId
 
-from models.filtering import GameFiltering
 from models.game import Game
 
 from .base_repository import BaseRepository
@@ -21,22 +20,6 @@ class GamesRepository(BaseRepository):
 
     async def delete(self, game_id: ObjectId) -> None:
         await self.collection.delete_one({"_id": game_id})
-
-    async def get_page(self, skip, limit, filtering: GameFiltering):
-        filtering_pipeline = filtering.build_pipeline()
-        if not filtering_pipeline:
-            filtering_pipeline = [{"$match": {}}]
-        sort_step = {"$sort": {"name": 1}}
-        limit_step = {"$limit": limit}
-        skip_step = {"$skip": skip}
-        pipeline = [*filtering_pipeline, sort_step, skip_step, limit_step]
-        return await self._find_by_aggregation(pipeline)
-
-    async def count(self, filtering: GameFiltering):
-        pipeline = filtering.build_pipeline()
-        if not pipeline:
-            pipeline = [{"$match": {}}]
-        return await self._count_by_aggregation(pipeline)
 
     async def find_by_steam_id(self, steam_id: int) -> Game | None:
         game_data = await self.collection.find_one({"steam_id": steam_id})

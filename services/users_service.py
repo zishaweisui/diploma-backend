@@ -1,15 +1,19 @@
 from bson.objectid import ObjectId
 
 from infrastructure_exceptions import InvalidRequestException, NotFoundException
+from models.login import LoginRequest
 from models.page import Page
+from models.token_pairs import TokenPair
 from models.user import User, UserIn, UserUpdate
+from models.password import UpdatePassword
 
 
 class UsersService:
-    def __init__(self, page_service, password_service, repository):
+    def __init__(self, page_service, password_service, repository, auth_service):
         self.page_service = page_service
         self.password_service = password_service
         self.repository = repository
+        self.auth_service = auth_service
 
     async def create_user(self, model: UserIn, principal=None) -> User:
         existing_user = await self.repository.find_by_email(model.email)
@@ -20,11 +24,40 @@ class UsersService:
                 ]
             }
             raise InvalidRequestException(error)
+        model.role = "user"
         user = User.model_validate(model)
         user.password_hash = await self.password_service.create_hash(model.password)
         user.token_pairs = []
         user.id = await self.repository.create(user)
         return user
+
+    async def change_password(
+            self, user_id: ObjectId, update_password: UpdatePassword, principal=None) -> TokenPair:
+        user = await self.__get_user(user_id)
+        old_password = update_password.old_password
+        if not await self.password_service.check(old_password, user.password_hash):
+            error = {
+                "old_password": [
+                    {
+                        "message": "Invalid password",
+                        "key": "error_invalid_password"
+                    }
+                ]
+            }
+            raise InvalidRequestException(error)
+
+        user.password_hash = await self.password_service.create_hash(
+            update_password.new_password
+        )
+        user.token_pairs = []
+        await self.repository.update(user)
+
+        login_request = LoginRequest(
+            email=user.email,
+            password=update_password.new_password
+        )
+        token_pair = await self.auth_service.login(login_request)
+        return token_pair
 
     async def get_principal(self, principal=None):
         return principal
@@ -47,9 +80,6 @@ class UsersService:
             }
             raise InvalidRequestException(error)
         user.assign_request(updated_user)
-        if updated_user.password:
-            user.password_hash = await self.password_service.create_hash(updated_user.password)
-            user.token_pairs = []
         await self.repository.update(user)
         return user
 

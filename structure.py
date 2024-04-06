@@ -15,7 +15,7 @@ from handlers.users import (
     GetUsersHandler,
     GetUsersPageHandler,
     UpdateUserHandler,
-    UploadUserFileHandler,
+    UploadUserFileHandler, ChangePasswordHandler,
 )
 from handlers.games import (
     CreateGameHandler,
@@ -25,7 +25,7 @@ from handlers.games import (
 from handlers.public import (
     CreateUserHandler,
     GetPublicGameHandler,
-    GetPublicGamesPageHandler,
+    GetPublicGamesHandler,
 )
 from models.translators import (
     GameMongoTranslator,
@@ -76,7 +76,8 @@ class Structure:
                 "args": [
                     "page_service",
                     "password_service",
-                    "users_repository"
+                    "users_repository",
+                    "auth_service"
                 ]
             },
             "password_service": {
@@ -162,6 +163,16 @@ class Structure:
             },
             "delete_user_auth_handler": lambda: self.decorate_auth_handler(
                 "delete_user_handler", auth_factory.strict("*")
+            ),
+            "change_password_handler": {
+                "class": ChangePasswordHandler,
+                "args": [
+                    "users_service",
+                    None,
+                ]
+            },
+            "change_password_auth_handler": lambda: self.decorate_auth_handler(
+                    "change_password_handler", auth_factory.strict("*")
             ),
             "user_public_file_s3_wrapper": {
                 "class": S3Wrapper,
@@ -271,15 +282,15 @@ class Structure:
             "get_game_auth_handler": lambda: self.decorate_auth_handler(
                 "get_game_handler", auth_factory.liberal()
             ),
-            "get_games_page_handler": {
-                "class": GetPublicGamesPageHandler,
+            "get_public_games_handler": {
+                "class": GetPublicGamesHandler,
                 "args": [
                     "games_service",
                     None
                 ]
             },
-            "get_games_page_auth_handler": lambda: self.decorate_auth_handler(
-                "get_games_page_handler", auth_factory.liberal()
+            "get_public_games_auth_handler": lambda: self.decorate_auth_handler(
+                "get_public_games_handler", auth_factory.liberal()
             ),
             "recommendations_service": {
                 "class": RecommendationsService,
