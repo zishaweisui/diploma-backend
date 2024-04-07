@@ -15,7 +15,8 @@ from handlers.users import (
     GetUsersHandler,
     GetUsersPageHandler,
     UpdateUserHandler,
-    UploadUserFileHandler, ChangePasswordHandler,
+    UploadUserFileHandler,
+    ChangePasswordHandler,
 )
 from handlers.games import (
     CreateGameHandler,
@@ -26,16 +27,19 @@ from handlers.public import (
     CreateUserHandler,
     GetPublicGameHandler,
     GetPublicGamesHandler,
+    GetPublicGamesReleasesHandler,
 )
 from models.translators import (
     GameMongoTranslator,
     UploadedFileMongoTranslator,
     UserMongoTranslator,
+    GameReleaseMongoTranslator,
 )
 from repositories import (
     CacheRepository,
     GamesRepository,
     UsersRepository,
+    GameReleasesRepository,
 )
 from services import (
     AuthService,
@@ -46,6 +50,7 @@ from services import (
     TokensService,
     UsersService,
     RecommendationsService,
+    GameReleasesService,
 )
 from services.builders.message_builder import MessageBuilder
 from wrappers import BcryptWrapper, S3Wrapper
@@ -85,6 +90,30 @@ class Structure:
                 "args": [
                     "bcrypt_wrapper"
                 ]
+            },
+            "game_releases_service": {
+                "class": GameReleasesService,
+                "args": [
+                    "game_releases_repository"
+                ]
+            },
+            "game_releases_repository": {
+                "singleton": True,
+                "class": GameReleasesRepository,
+                "args": [
+                    lambda: self.dependencies.motor_wrapper().get_collection(
+                        self.dependencies.motor_wrapper().get_client(), "game_releases"),
+                    "game_release_mongo_translator",
+                    lambda: create_mongo_index(
+                        [
+                            ascending("release_date")
+                        ]
+                    )
+                ]
+            },
+            "game_release_mongo_translator": {
+                "class": GameReleaseMongoTranslator,
+                "args": []
             },
             "users_repository": {
                 "singleton": True,
@@ -291,6 +320,16 @@ class Structure:
             },
             "get_public_games_auth_handler": lambda: self.decorate_auth_handler(
                 "get_public_games_handler", auth_factory.liberal()
+            ),
+            "get_public_games_releases_handler": {
+                "class": GetPublicGamesReleasesHandler,
+                "args": [
+                    "game_releases_service",
+                    None
+                ]
+            },
+            "get_public_games_releases_auth_handler": lambda: self.decorate_auth_handler(
+                "get_public_games_releases_handler", auth_factory.liberal()
             ),
             "recommendations_service": {
                 "class": RecommendationsService,

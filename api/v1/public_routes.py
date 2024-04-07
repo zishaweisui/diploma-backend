@@ -1,9 +1,9 @@
-
 from fastapi import APIRouter, Request
 
 from models import UserIn
 from models.base_model import PyObjectId
 from models.game import GameOut
+from models.game_release import GameReleaseOut
 from models.user import UserOut
 from structure import structure
 
@@ -25,4 +25,10 @@ async def get_public_game(game_id: PyObjectId, request: Request) -> GameOut | No
 @router.get("/public/games", response_model=list[GameOut])
 async def get_public_games(request: Request) -> list[GameOut]:
     handler = structure.instantiate("get_public_games_auth_handler")
+    return await handler.handle(request)
+
+
+@router.get("/public/games_releases", response_model=list[GameReleaseOut])
+async def get_public_games_releases(request: Request) -> list[GameReleaseOut]:
+    handler = structure.instantiate("get_public_games_releases_auth_handler")
     return await handler.handle(request)

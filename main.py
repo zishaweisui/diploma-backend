@@ -47,6 +47,7 @@ async def startup_db_client():
 
     users_repository = structure.instantiate("users_repository")
     games_repository = structure.instantiate("games_repository")
+    games_repository = structure.instantiate("game_releases_repository")
 
     async with asyncio.TaskGroup() as tg:
         tg.create_task(users_repository.configure_indexes())

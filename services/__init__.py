@@ -7,3 +7,4 @@ from .tokens_service import TokensService
 from .public_files_service import PublicFilesService
 from .games_service import GamesService
 from .recommendations_service import RecommendationsService
+from .game_releases_service import GameReleasesService
