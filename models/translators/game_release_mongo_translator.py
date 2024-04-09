@@ -6,4 +6,6 @@ class GameReleaseMongoTranslator:
         return model.model_dump(by_alias=True)
 
     def from_document(self, document: dict) -> GameRelease:
+        data = document.get("release_date")
+        document["release_date"] = data.split()[0]
         return GameRelease(**document)

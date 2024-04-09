@@ -16,17 +16,11 @@ class GameRelease(BaseModel):
     region: str | None
     platform: str | None
     publishers: List[Publisher] | None
-    images_api_url: str | None
+    image_url: str | None
 
 
-class GameReleaseOut(BaseModel):
+class GameReleaseOut(GameRelease):
     id: PydanticObjectId = Field(...)
-    release_date: str | None
-    distribution_type: str | None
-    name: str | None
-    region: str | None
-    platform: str | None
-    publishers: List[Publisher] | None
 
     @field_serializer("id", check_fields=False)
     def serialize_id(self, v, _info):
